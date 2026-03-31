@@ -4,12 +4,14 @@ from ..core import AbstractStrategy, LottoDrawRecord, StrategyMetadata, Strategy
 
 _metadata = StrategyMetadata(
     requires_data=False,
-    has_params=False,
 )
 
 
 @StrategyRegistry.register('random', _metadata)
 class Baseline(AbstractStrategy):
+    def __init__(self, _: dict[str, str]) -> None:
+        pass
+
     def prepare_data(self, _: list[LottoDrawRecord]) -> None:
         pass
 

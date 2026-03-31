@@ -10,7 +10,7 @@ from rich.table import Table
 from rich.text import Text
 
 from . import lotto_client
-from .core import AbstractStrategy, GameType, StrategyRegistry
+from .core import AbstractStrategy, GameType, StrategyRegistry, UnknownStrategyError
 from .metrics import BacktestReport, MetricsCalculator
 from .settings import config
 from .simulation import BacktestEngine
@@ -46,24 +46,39 @@ def _validate_date_options(date_from: str | None, date_to: str | None) -> None:
         raise typer.BadParameter(f'Invalid date format for --date-to. Expected format: {config.app.date_format}')
 
 
-def _parse_params(params: str | None) -> dict[str, str]:
+def _parse_params(params: list[str] | None) -> dict[str, str]:
     if params is None:
         return {}
 
-    return dict(param_item.split('=', 1) for param_item in params)
+    parsed_params: dict[str, str] = {}
+
+    for param_item in params:
+        name, separator, value = param_item.partition('=')
+
+        if separator != '=' or not name:
+            raise typer.BadParameter('Parameters must use the format name=value.', param_hint='--param')
+
+        if name in parsed_params:
+            raise typer.BadParameter(f'Duplicate parameter: {name}', param_hint='--param')
+
+        parsed_params[name] = value
+
+    return parsed_params
 
 
 def _resolve_strategy(strategy_name: str, params: dict[str, str]) -> AbstractStrategy:
     try:
         return StrategyRegistry.resolve(strategy_name, params)
-    except ValueError as exc:
+    except UnknownStrategyError as exc:
         raise typer.BadParameter(str(exc), param_hint='--strategy') from exc
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc), param_hint='--param') from exc
 
 
 def _strategy_requires_data(strategy_name: str) -> bool:
     try:
         return StrategyRegistry.requires_data(strategy_name)
-    except ValueError as exc:
+    except UnknownStrategyError as exc:
         raise typer.BadParameter(str(exc), param_hint='--strategy') from exc
 
 

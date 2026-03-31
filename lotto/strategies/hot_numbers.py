@@ -1,16 +1,23 @@
 from collections import Counter
 
-from ..core import AbstractStrategy, LottoDrawRecord, StrategyRegistry
+from ..core import AbstractStrategy, LottoDrawRecord, StrategyMetadata, StrategyRegistry
 
-default_params: dict[str, str] = {
+_default_params = {
     'lookback': '100',
 }
 
 
-@StrategyRegistry.register('hot-numbers')
+_metadata = StrategyMetadata()
+
+
+@StrategyRegistry.register('hot-numbers', _metadata)
 class HotNumbers(AbstractStrategy):
     def __init__(self, params: dict[str, str]) -> None:
-        self._lookback = int(params.get('lookback', default_params['lookback']))
+        self._lookback = int(params.get('lookback', _default_params['lookback']))
+
+        if self._lookback < 0:
+            raise ValueError('Parameter lookback must be a non-negative integer.')
+
         self._data: list[LottoDrawRecord] = []
 
     def prepare_data(self, data: list[LottoDrawRecord]) -> None:

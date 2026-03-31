@@ -38,10 +38,13 @@ class AbstractStrategy(ABC):
         raise NotImplementedError
 
 
+class UnknownStrategyError(ValueError):
+    pass
+
+
 @dataclass
 class StrategyMetadata:
     requires_data: bool = True
-    has_params: bool = True
 
 
 class StrategyRegistry:
@@ -66,14 +69,14 @@ class StrategyRegistry:
 
     @classmethod
     def resolve(cls, name: str, params: dict[str, str]) -> AbstractStrategy:
-        strategy_type, metadata = cls._get_strategy_entry(name)
-        return strategy_type(params) if metadata.has_params else strategy_type()
+        strategy_type, _ = cls._get_strategy_entry(name)
+        return strategy_type(params)
 
     @classmethod
     def _get_strategy_entry(cls, name: str) -> tuple[type[AbstractStrategy], StrategyMetadata]:
         entry = cls._registry.get(name)
 
         if entry is None:
-            raise ValueError(f'Unknown strategy: {name}')
+            raise UnknownStrategyError(f'Unknown strategy: {name}')
 
         return entry
