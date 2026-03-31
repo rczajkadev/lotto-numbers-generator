@@ -10,6 +10,6 @@ echo -e "\n✨ Running unit tests..."
 
 echo -e "\n🔧 Installing/updating app on this computer..."
 
-./install.sh
+./scripts/install.sh
 
 echo -e "\n🎉 Pre-push status: success 🎉\n"
