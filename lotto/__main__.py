@@ -1,8 +1,6 @@
 import importlib
 import pkgutil
 
-import lotto.strategies.baseline
-import lotto.strategies.hot_numbers  # noqa: F401
 from lotto.cli import run_typer_app
 
 
@@ -14,5 +12,5 @@ def run_modules_discovery(package: str) -> None:
 
 
 if __name__ == '__main__':
-    # run_modules_discovery('lotto.strategies')
+    run_modules_discovery('lotto.strategies')
     run_typer_app()

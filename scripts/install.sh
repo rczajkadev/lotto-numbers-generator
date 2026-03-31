@@ -8,6 +8,7 @@ env_file="$root_dir/.env"
 venv_helper="$root_dir/scripts/venv.sh"
 dist_dir="$root_dir/dist"
 build_dir="$root_dir/build"
+hooks_dir="$root_dir/pyinstaller"
 
 if [ "$branch_name" != "main" ]; then
   echo "Skipping install because the current branch is not main."
@@ -50,6 +51,7 @@ rm -rf "$dist_dir"
   --exclude-module pyinstaller \
   --distpath "$dist_dir" \
   --workpath "$build_dir" \
+  --additional-hooks-dir "$hooks_dir" \
   --log-level WARN
 
 echo "Removing existing installation at $CLI_APP_INSTALLATION_DIR..."
