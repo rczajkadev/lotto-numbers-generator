@@ -10,6 +10,9 @@ TEMPLATE = 'plotly_dark'
 
 
 def visualise_results(history: list[GameRecord], strategy_name: str) -> None:
+    if not history:
+        return
+
     fig = make_subplots(rows=2, shared_xaxes=True)
 
     fig.update_layout(

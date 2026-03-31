@@ -18,17 +18,12 @@ class BacktestEngine:
 
     def results_gen(self, data: list[LottoDrawRecord]) -> Iterator[GameRecord]:
         self._history = []
+        sorted_data = sorted(data, key=lambda record: record.draw_date)
 
-        for record in data:
-            data_chunk = data[: data.index(record)]
-            self._strategy.prepare_data(data_chunk)
+        for index, record in enumerate(sorted_data):
+            self._strategy.prepare_data(sorted_data[:index])
 
-            datasets = [
-                (GameType.LOTTO, record.lotto_numbers),
-                (GameType.LOTTO_PLUS, record.plus_numbers),
-            ]
-
-            for game_type, draw_result in datasets:
+            for game_type, draw_result in self._get_game_results(record):
                 yield self._handle_game(record.draw_date, game_type, draw_result)
 
     def _handle_game(self, draw_date: datetime.date, game_type: GameType, draw_result: list[int]) -> GameRecord:
@@ -48,3 +43,9 @@ class BacktestEngine:
 
     def _count_matches(self, draw_result: list[int], generated_numbers: list[int]) -> int:
         return len(set(draw_result) & set(generated_numbers))
+
+    def _get_game_results(self, record: LottoDrawRecord) -> Iterator[tuple[GameType, list[int]]]:
+        yield GameType.LOTTO, record.lotto_numbers
+
+        if record.plus_numbers:
+            yield GameType.LOTTO_PLUS, record.plus_numbers

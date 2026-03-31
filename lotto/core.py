@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date
 from enum import Enum, auto
 
 
@@ -11,7 +11,7 @@ class GameType(Enum):
 
 @dataclass
 class LottoDrawRecord:
-    draw_date: datetime
+    draw_date: date
     lotto_numbers: list[int]
     plus_numbers: list[int]
 
@@ -19,7 +19,7 @@ class LottoDrawRecord:
 @dataclass
 class GameRecord:
     game_type: GameType
-    draw_date: datetime
+    draw_date: date
     draw_result: list[int]
     generated_numbers: list[int]
     matches: int
@@ -57,7 +57,7 @@ class StrategyRegistry:
 
     @classmethod
     def requires_data(cls, name: str) -> bool:
-        _, metadata = cls._registry.get(name)
+        _, metadata = cls._get_strategy_entry(name)
         return metadata.requires_data
 
     @classmethod
@@ -66,5 +66,14 @@ class StrategyRegistry:
 
     @classmethod
     def resolve(cls, name: str, params: dict[str, str]) -> AbstractStrategy:
-        strategy_type, metadata = cls._registry.get(name)
+        strategy_type, metadata = cls._get_strategy_entry(name)
         return strategy_type(params) if metadata.has_params else strategy_type()
+
+    @classmethod
+    def _get_strategy_entry(cls, name: str) -> tuple[type[AbstractStrategy], StrategyMetadata]:
+        entry = cls._registry.get(name)
+
+        if entry is None:
+            raise ValueError(f'Unknown strategy: {name}')
+
+        return entry
