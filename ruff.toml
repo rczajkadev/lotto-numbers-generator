@@ -1,7 +1,8 @@
 target-version = "py312"
 line-length = 120
+force-exclude = true
 
-extend-exclude = [".ruff_cache", "__pycache__"]
+extend-exclude = [".ruff_cache", "__pycache__", "lotto/api_client"]
 
 [lint]
 select = ["E", "F", "I", "UP", "B", "C4", "SIM", "ANN", "N", "TCH"]

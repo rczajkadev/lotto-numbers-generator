@@ -1,3 +1,4 @@
+openapi-python-client==0.28.3
 pandas==2.3.3
 plotly==6.3.1
 pyinstaller==6.16.0
