@@ -40,7 +40,8 @@ def get_draw_results(date_from: str | None, date_to: str | None, top: int | None
     if isinstance(response, str):
         raise RuntimeError(response)
 
-    return [_map_record(record) for record in response]
+    records = [_map_record(record) for record in response]
+    return sorted(records, key=lambda record: record.draw_date)
 
 
 def _map_record(record: DrawResultsDto) -> LottoDrawRecord:
