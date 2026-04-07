@@ -51,7 +51,8 @@ def show_no_draw_results() -> None:
     _console.print('No draw results found for the selected filters.', style='yellow')
 
 
-def render_generated_numbers(numbers: list[int]) -> None:
+def render_generated_numbers(strategy_name: str, numbers: list[int]) -> None:
+    _console.print(f'Strategy: [bold green]{strategy_name}[/]')
     _console.print(f'Generated numbers: [bold green]{", ".join(map(str, numbers))}[/]')
 
 

@@ -38,7 +38,7 @@ def _run_default_command(
         rendering.show_no_draw_results()
         return
 
-    rendering.render_generated_numbers(generation.numbers)
+    rendering.render_generated_numbers(strategy_name, generation.numbers)
 
 
 def _run_simulation(
