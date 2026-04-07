@@ -9,9 +9,9 @@ from rich.style import Style
 from rich.table import Table
 from rich.text import Text
 
-from . import lotto_client
-from .core import AbstractStrategy, GameType, StrategyRegistry, UnknownStrategyError
-from .metrics import BacktestReport, MetricsCalculator
+from . import services
+from .core import UnknownStrategyError
+from .metrics import BacktestReport
 from .settings import config
 from .simulation import BacktestEngine
 from .visualisation import visualise_results
@@ -71,20 +71,12 @@ def _parse_params(params: list[str] | None) -> dict[str, str]:
     return parsed_params
 
 
-def _resolve_strategy(strategy_name: str, params: dict[str, str]) -> AbstractStrategy:
-    try:
-        return StrategyRegistry.resolve(strategy_name, params)
-    except UnknownStrategyError as exc:
-        raise typer.BadParameter(str(exc), param_hint='--strategy') from exc
-    except ValueError as exc:
-        raise typer.BadParameter(str(exc), param_hint='--param') from exc
-
-
-def _strategy_requires_data(strategy_name: str) -> bool:
-    try:
-        return StrategyRegistry.requires_data(strategy_name)
-    except UnknownStrategyError as exc:
-        raise typer.BadParameter(str(exc), param_hint='--strategy') from exc
+def _map_service_error(exc: Exception) -> typer.BadParameter:
+    if isinstance(exc, UnknownStrategyError):
+        return typer.BadParameter(str(exc), param_hint='--strategy')
+    if isinstance(exc, services.StrategyParamError):
+        return typer.BadParameter(str(exc), param_hint='--param')
+    raise TypeError(f'Unsupported service exception type: {type(exc).__name__}')
 
 
 def _get_metrics_table(title: str, report: BacktestReport) -> Table:
@@ -110,35 +102,6 @@ def _get_metrics_table(title: str, report: BacktestReport) -> Table:
     return table
 
 
-def _run_generate(
-    strategy_name: str,
-    params: list[str] | None,
-    date_from: str | None,
-    date_to: str | None,
-    top: int,
-) -> None:
-    _validate_date_options(date_from, date_to)
-
-    params_dict = _parse_params(params)
-    requires_data = _strategy_requires_data(strategy_name)
-    strategy = _resolve_strategy(strategy_name, params_dict)
-
-    if requires_data:
-        with _console.status('Fetching data', spinner=_spinner_type, spinner_style=_color):
-            data = lotto_client.get_draw_results(date_from, date_to, top)
-
-        if not data:
-            _console.print('No draw results found for the selected filters.', style='yellow')
-            return
-    else:
-        data = []
-
-    strategy.prepare_data(data)
-    numbers = strategy.generate_numbers()
-
-    _console.print(f'Generated numbers: [bold green]{", ".join(map(str, numbers))}[/]')
-
-
 @_app.callback()
 def run_default_command(
     ctx: typer.Context,
@@ -158,7 +121,28 @@ def run_default_command(
 
         raise typer.BadParameter('Option --strategy is required in default generate mode.', param_hint='--strategy')
 
-    _run_generate(strategy_name, params, date_from, date_to, top)
+    _validate_date_options(date_from, date_to)
+    params_dict = _parse_params(params)
+
+    try:
+        requires_data = services.strategy_requires_data(strategy_name)
+    except UnknownStrategyError as exc:
+        raise _map_service_error(exc) from exc
+
+    try:
+        if requires_data:
+            with _console.status('Fetching data', spinner=_spinner_type, spinner_style=_color):
+                generation = services.generate_numbers(strategy_name, params_dict, date_from, date_to, top)
+        else:
+            generation = services.generate_numbers(strategy_name, params_dict, date_from, date_to, top)
+    except (UnknownStrategyError, services.StrategyParamError) as exc:
+        raise _map_service_error(exc) from exc
+
+    if generation.numbers is None:
+        _console.print('No draw results found for the selected filters.', style='yellow')
+        return
+
+    _console.print(f'Generated numbers: [bold green]{", ".join(map(str, generation.numbers))}[/]')
 
 
 @_app.command(name='simulate')
@@ -171,45 +155,44 @@ def run_simulation(
 ) -> None:
     _validate_date_options(date_from, date_to)
     params_dict = _parse_params(params)
-    strategy = _resolve_strategy(strategy_name, params_dict)
 
-    with _console.status('Fetching data', spinner=_spinner_type, spinner_style=_color):
-        data = lotto_client.get_draw_results(date_from, date_to, top)
+    try:
+        with _console.status('Fetching data', spinner=_spinner_type, spinner_style=_color):
+            prepared_simulation = services.prepare_simulation(strategy_name, params_dict, date_from, date_to, top)
+    except (UnknownStrategyError, services.StrategyParamError) as exc:
+        raise _map_service_error(exc) from exc
 
-    if not data:
+    if not prepared_simulation.data:
         _console.print('No draw results found for the selected filters.', style='yellow')
         return
 
-    backtest = BacktestEngine(strategy)
+    backtest = BacktestEngine(prepared_simulation.strategy)
 
-    results_iterator = backtest.results_gen(data)
-    total_games = sum(1 + int(bool(record.plus_numbers)) for record in data)
+    results_iterator = backtest.results_gen(prepared_simulation.data)
     results = []
 
     with _progress:
-        task = _progress.add_task('Backtest:', total=total_games)
+        task = _progress.add_task('Backtest:', total=prepared_simulation.total_games)
 
         for result in results_iterator:
             results.append(result)
             _progress.advance(task)
 
-    metrics_calculator = MetricsCalculator(backtest.history)
-    lotto_metrics = metrics_calculator.generate_report(GameType.LOTTO)
-    lotto_plus_metrics = metrics_calculator.generate_report(GameType.LOTTO_PLUS)
+    summary = services.build_simulation_summary(backtest.history)
 
-    lotto_table = _get_metrics_table('Lotto - metrics', lotto_metrics)
-    lotto_plus_table = _get_metrics_table('Lotto Plus - metrics', lotto_plus_metrics)
+    lotto_table = _get_metrics_table('Lotto - metrics', summary.lotto_report)
+    lotto_plus_table = _get_metrics_table('Lotto Plus - metrics', summary.lotto_plus_report)
 
     _console.print()
     _console.print(Columns([lotto_table, lotto_plus_table], padding=(0, 2)))
     _console.print()
 
-    visualise_results(results, strategy_name)
+    visualise_results(results, prepared_simulation.strategy_name)
 
 
 @_app.command(name='strategies')
 def list_strategies() -> None:
-    strategies = StrategyRegistry.list_strategies()
+    strategies = services.list_strategies()
 
     _console.print('Available Strategies:', style='bold')
 
