@@ -1,6 +1,6 @@
 # Lotto Numbers Generator
 
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Simple CLI application for generating Lotto numbers using different strategies and backtesting them on historical Lotto and Lotto Plus draws.
 
