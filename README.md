@@ -2,6 +2,8 @@
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
+Simple CLI application for generating Lotto numbers using different strategies and backtesting them on historical Lotto and Lotto Plus draws.
+
 Uses [Lotto API](https://github.com/rczajkadev/lotto-api) as a data source.
 
 
