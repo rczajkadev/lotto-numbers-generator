@@ -1,7 +1,7 @@
 import importlib
 import pkgutil
 
-from lotto.cli import run_typer_app
+from lotto.cli import run_cli_app
 
 
 def run_modules_discovery(package: str) -> None:
@@ -13,4 +13,4 @@ def run_modules_discovery(package: str) -> None:
 
 if __name__ == '__main__':
     run_modules_discovery('lotto.strategies')
-    run_typer_app()
+    run_cli_app()
