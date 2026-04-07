@@ -16,7 +16,12 @@ from .settings import config
 from .simulation import BacktestEngine
 from .visualisation import visualise_results
 
-_app = typer.Typer(name=config.app.name, add_completion=False, no_args_is_help=True)
+_app = typer.Typer(
+    name=config.app.name,
+    add_completion=False,
+    invoke_without_command=True,
+    help='Generate numbers by default when no command is provided.',
+)
 _console = Console()
 
 _spinner_type = 'arc'
@@ -105,6 +110,57 @@ def _get_metrics_table(title: str, report: BacktestReport) -> Table:
     return table
 
 
+def _run_generate(
+    strategy_name: str,
+    params: list[str] | None,
+    date_from: str | None,
+    date_to: str | None,
+    top: int,
+) -> None:
+    _validate_date_options(date_from, date_to)
+
+    params_dict = _parse_params(params)
+    requires_data = _strategy_requires_data(strategy_name)
+    strategy = _resolve_strategy(strategy_name, params_dict)
+
+    if requires_data:
+        with _console.status('Fetching data', spinner=_spinner_type, spinner_style=_color):
+            data = lotto_client.get_draw_results(date_from, date_to, top)
+
+        if not data:
+            _console.print('No draw results found for the selected filters.', style='yellow')
+            return
+    else:
+        data = []
+
+    strategy.prepare_data(data)
+    numbers = strategy.generate_numbers()
+
+    _console.print(f'Generated numbers: [bold green]{", ".join(map(str, numbers))}[/]')
+
+
+@_app.callback()
+def run_default_command(
+    ctx: typer.Context,
+    strategy_name: Annotated[str | None, typer.Option('--strategy', '-s')] = None,
+    params: Annotated[list[str] | None, typer.Option('--param', '-p')] = None,
+    date_from: Annotated[str | None, typer.Option('--date-from')] = None,
+    date_to: Annotated[str | None, typer.Option('--date-to')] = None,
+    top: Annotated[int, typer.Option('--top', min=1)] = 100,
+) -> None:
+    if ctx.invoked_subcommand is not None:
+        return
+
+    if strategy_name is None:
+        if params is None and date_from is None and date_to is None and top == 100:
+            _console.print(ctx.get_help(), end='')
+            raise typer.Exit()
+
+        raise typer.BadParameter('Option --strategy is required in default generate mode.', param_hint='--strategy')
+
+    _run_generate(strategy_name, params, date_from, date_to, top)
+
+
 @_app.command(name='simulate')
 def run_simulation(
     strategy_name: Annotated[str, typer.Option('--strategy', '-s')],
@@ -159,36 +215,6 @@ def list_strategies() -> None:
 
     for strategy in strategies:
         _console.print(f'- {strategy}')
-
-
-@_app.command(name='generate')
-def generate_numbers(
-    strategy_name: Annotated[str, typer.Option('--strategy', '-s')],
-    params: Annotated[list[str] | None, typer.Option('--param', '-p')] = None,
-    date_from: Annotated[str | None, typer.Option('--date-from')] = None,
-    date_to: Annotated[str | None, typer.Option('--date-to')] = None,
-    top: Annotated[int, typer.Option('--top', min=1)] = 100,
-) -> None:
-    _validate_date_options(date_from, date_to)
-
-    params_dict = _parse_params(params)
-    requires_data = _strategy_requires_data(strategy_name)
-    strategy = _resolve_strategy(strategy_name, params_dict)
-
-    if requires_data:
-        with _console.status('Fetching data', spinner=_spinner_type, spinner_style=_color):
-            data = lotto_client.get_draw_results(date_from, date_to, top)
-
-        if not data:
-            _console.print('No draw results found for the selected filters.', style='yellow')
-            return
-    else:
-        data = []
-
-    strategy.prepare_data(data)
-    numbers = strategy.generate_numbers()
-
-    _console.print(f'Generated numbers: [bold green]{", ".join(map(str, numbers))}[/]')
 
 
 def run_typer_app() -> None:
