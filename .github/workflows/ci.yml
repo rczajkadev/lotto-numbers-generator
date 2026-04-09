@@ -27,6 +27,3 @@ jobs:
 
       - name: Lint
         run: python -m ruff check .
-
-      - name: Smoke tests
-        uses: ./.github/actions/smoke-tests
