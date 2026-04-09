@@ -2,14 +2,19 @@
 
 set -e
 
+root_dir=$(git rev-parse --show-toplevel)
+
+. "$root_dir/scripts/venv.sh"
+set_venv_python "$root_dir"
+
 echo "🚀 Running pre-push hook 🚀"
 
 echo -e "\n✨ Running unit tests..."
 
-# pytest ./tests
+# "$VENV_PY" -m pytest ./tests
 
 echo -e "\n🔧 Installing/updating app on this computer..."
 
-./scripts/install.sh
+sh "$root_dir/scripts/install.sh"
 
 echo -e "\n🎉 Pre-push status: success 🎉\n"
