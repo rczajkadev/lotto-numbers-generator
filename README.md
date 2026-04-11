@@ -4,7 +4,7 @@
 
 Simple CLI application for generating Lotto numbers using different strategies and backtesting them on historical Lotto and Lotto Plus draws.
 
-Uses [Lotto API](https://github.com/rczajkadev/lotto-api) as a data source.
+Uses [Lotto API](https://github.com/rafalczajka/lotto-api) as a data source.
 
 
 ## requirements
