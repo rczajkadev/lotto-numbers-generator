@@ -1,9 +1,9 @@
 openapi-python-client==0.28.3
 pandas==3.0.2
 plotly==6.7.0
-pyinstaller==6.19.0
+pyinstaller==6.20.0
 pyyaml==6.0.3
 requests==2.33.1
-ruff==0.15.10
+ruff==0.15.11
 scipy==1.17.1
-typer==0.24.1
+typer==0.24.2
