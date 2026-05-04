@@ -1,8 +1,8 @@
-""" Contains some shared types for properties """
+"""Contains some shared types for properties"""
 
 from collections.abc import Mapping, MutableMapping
 from http import HTTPStatus
-from typing import BinaryIO, Generic, TypeVar, Literal, IO
+from typing import IO, BinaryIO, Generic, Literal, TypeVar
 
 from attrs import define
 
@@ -24,25 +24,26 @@ FileTypes = (
 )
 RequestFiles = list[tuple[str, FileTypes]]
 
+
 @define
 class File:
-    """ Contains information for file uploads """
+    """Contains information for file uploads"""
 
     payload: BinaryIO
     file_name: str | None = None
     mime_type: str | None = None
 
     def to_tuple(self) -> FileTypes:
-        """ Return a tuple representation that httpx will accept for multipart/form-data """
+        """Return a tuple representation that httpx will accept for multipart/form-data"""
         return self.file_name, self.payload, self.mime_type
 
 
-T = TypeVar("T")
+T = TypeVar('T')
 
 
 @define
 class Response(Generic[T]):
-    """ A response from an endpoint """
+    """A response from an endpoint"""
 
     status_code: HTTPStatus
     content: bytes
@@ -50,4 +51,4 @@ class Response(Generic[T]):
     parsed: T | None
 
 
-__all__ = ["UNSET", "File", "FileTypes", "RequestFiles", "Response", "Unset"]
+__all__ = ['UNSET', 'File', 'FileTypes', 'RequestFiles', 'Response', 'Unset']

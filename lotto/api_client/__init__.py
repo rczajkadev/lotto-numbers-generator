@@ -1,8 +1,8 @@
+"""A client library for accessing Lotto API"""
 
-""" A client library for accessing Lotto API """
 from .client import AuthenticatedClient, Client
 
 __all__ = (
-    "AuthenticatedClient",
-    "Client",
+    'AuthenticatedClient',
+    'Client',
 )

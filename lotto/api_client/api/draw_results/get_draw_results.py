@@ -1,18 +1,13 @@
 from http import HTTPStatus
 from typing import Any, cast
-from urllib.parse import quote
 
 import httpx
 
-from ...client import AuthenticatedClient, Client
-from ...types import Response, UNSET
 from ... import errors
-
+from ...client import AuthenticatedClient, Client
 from ...models.draw_results_dto import DrawResultsDto
 from ...models.error_response import ErrorResponse
-from ...types import UNSET, Unset
-from typing import cast
-
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
@@ -20,43 +15,35 @@ def _get_kwargs(
     date_from: str | Unset = UNSET,
     date_to: str | Unset = UNSET,
     top: int | Unset = UNSET,
-
 ) -> dict[str, Any]:
-    
-
-    
 
     params: dict[str, Any] = {}
 
-    params["dateFrom"] = date_from
+    params['dateFrom'] = date_from
 
-    params["dateTo"] = date_to
+    params['dateTo'] = date_to
 
-    params["top"] = top
-
+    params['top'] = top
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
-
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": "/draw-results",
-        "params": params,
+        'method': 'get',
+        'url': '/draw-results',
+        'params': params,
     }
-
 
     return _kwargs
 
 
-
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ErrorResponse | list[DrawResultsDto] | str | None:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> ErrorResponse | list[DrawResultsDto] | str | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
-        for response_200_item_data in (_response_200):
+        for response_200_item_data in _response_200:
             response_200_item = DrawResultsDto.from_dict(response_200_item_data)
-
-
 
             response_200.append(response_200_item)
 
@@ -65,18 +52,14 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
     if response.status_code == 400:
         response_400 = ErrorResponse.from_dict(response.json())
 
-
-
         return response_400
 
     if response.status_code == 404:
-        response_404 = cast(str, response.json())
+        response_404 = cast('str', response.json())
         return response_404
 
     if response.status_code == 406:
         response_406 = ErrorResponse.from_dict(response.json())
-
-
 
         return response_406
 
@@ -86,7 +69,9 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[ErrorResponse | list[DrawResultsDto] | str]:
+def _build_response(
+    *, client: AuthenticatedClient | Client, response: httpx.Response
+) -> Response[ErrorResponse | list[DrawResultsDto] | str]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -101,9 +86,8 @@ def sync_detailed(
     date_from: str | Unset = UNSET,
     date_to: str | Unset = UNSET,
     top: int | Unset = UNSET,
-
 ) -> Response[ErrorResponse | list[DrawResultsDto] | str]:
-    """ 
+    """
     Args:
         date_from (str | Unset):
         date_to (str | Unset):
@@ -115,14 +99,12 @@ def sync_detailed(
 
     Returns:
         Response[ErrorResponse | list[DrawResultsDto] | str]
-     """
-
+    """
 
     kwargs = _get_kwargs(
         date_from=date_from,
-date_to=date_to,
-top=top,
-
+        date_to=date_to,
+        top=top,
     )
 
     response = client.get_httpx_client().request(
@@ -131,15 +113,15 @@ top=top,
 
     return _build_response(client=client, response=response)
 
+
 def sync(
     *,
     client: AuthenticatedClient,
     date_from: str | Unset = UNSET,
     date_to: str | Unset = UNSET,
     top: int | Unset = UNSET,
-
 ) -> ErrorResponse | list[DrawResultsDto] | str | None:
-    """ 
+    """
     Args:
         date_from (str | Unset):
         date_to (str | Unset):
@@ -151,16 +133,15 @@ def sync(
 
     Returns:
         ErrorResponse | list[DrawResultsDto] | str
-     """
-
+    """
 
     return sync_detailed(
         client=client,
-date_from=date_from,
-date_to=date_to,
-top=top,
-
+        date_from=date_from,
+        date_to=date_to,
+        top=top,
     ).parsed
+
 
 async def asyncio_detailed(
     *,
@@ -168,9 +149,8 @@ async def asyncio_detailed(
     date_from: str | Unset = UNSET,
     date_to: str | Unset = UNSET,
     top: int | Unset = UNSET,
-
 ) -> Response[ErrorResponse | list[DrawResultsDto] | str]:
-    """ 
+    """
     Args:
         date_from (str | Unset):
         date_to (str | Unset):
@@ -182,21 +162,18 @@ async def asyncio_detailed(
 
     Returns:
         Response[ErrorResponse | list[DrawResultsDto] | str]
-     """
-
+    """
 
     kwargs = _get_kwargs(
         date_from=date_from,
-date_to=date_to,
-top=top,
-
+        date_to=date_to,
+        top=top,
     )
 
-    response = await client.get_async_httpx_client().request(
-        **kwargs
-    )
+    response = await client.get_async_httpx_client().request(**kwargs)
 
     return _build_response(client=client, response=response)
+
 
 async def asyncio(
     *,
@@ -204,9 +181,8 @@ async def asyncio(
     date_from: str | Unset = UNSET,
     date_to: str | Unset = UNSET,
     top: int | Unset = UNSET,
-
 ) -> ErrorResponse | list[DrawResultsDto] | str | None:
-    """ 
+    """
     Args:
         date_from (str | Unset):
         date_to (str | Unset):
@@ -218,13 +194,13 @@ async def asyncio(
 
     Returns:
         ErrorResponse | list[DrawResultsDto] | str
-     """
+    """
 
-
-    return (await asyncio_detailed(
-        client=client,
-date_from=date_from,
-date_to=date_to,
-top=top,
-
-    )).parsed
+    return (
+        await asyncio_detailed(
+            client=client,
+            date_from=date_from,
+            date_to=date_to,
+            top=top,
+        )
+    ).parsed
