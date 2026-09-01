@@ -48,6 +48,7 @@ rm -rf "$dist_dir"
 
 "$VENV_PY" -m PyInstaller "$root_dir/lotto/__main__.py" \
   --name "$CLI_APP_NAME" \
+  --clean \
   --exclude-module pyinstaller \
   --distpath "$dist_dir" \
   --workpath "$build_dir" \
