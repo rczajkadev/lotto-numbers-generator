@@ -1,6 +1,6 @@
 from collections import Counter
 
-from ..core import AbstractStrategy, LottoDrawRecord, StrategyMetadata, StrategyRegistry
+from ..core import AbstractRankedStrategy, LottoDrawRecord, StrategyMetadata, StrategyRegistry
 from ._params import parse_positive_int_param
 
 _default_params = {
@@ -13,7 +13,7 @@ _metadata = StrategyMetadata()
 
 
 @StrategyRegistry.register('rising-numbers', _metadata)
-class RisingNumbers(AbstractStrategy):
+class RisingNumbers(AbstractRankedStrategy):
     def __init__(self, params: dict[str, str]) -> None:
         self._short_lookback = parse_positive_int_param(
             params,
@@ -34,7 +34,7 @@ class RisingNumbers(AbstractStrategy):
     def prepare_data(self, data: list[LottoDrawRecord]) -> None:
         self._data = data
 
-    def generate_numbers(self) -> list[int]:
+    def rank_numbers(self) -> list[int]:
         long_draws = self._data[-self._long_lookback :]
         short_draws = long_draws[-self._short_lookback :]
 
@@ -50,7 +50,7 @@ class RisingNumbers(AbstractStrategy):
         long_draws_count = max(len(long_draws), 1)
         short_draws_count = max(len(short_draws), 1)
 
-        ranked = sorted(
+        return sorted(
             range(1, self.POOL_MAX + 1),
             key=lambda number: (
                 -(short_counter.get(number, 0) * long_draws_count - long_counter.get(number, 0) * short_draws_count),
@@ -59,7 +59,3 @@ class RisingNumbers(AbstractStrategy):
                 number,
             ),
         )
-        pick = ranked[: self.TAKE]
-        pick.sort()
-
-        return pick

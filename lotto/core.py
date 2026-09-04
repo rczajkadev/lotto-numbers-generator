@@ -38,6 +38,15 @@ class AbstractStrategy(ABC):
         raise NotImplementedError
 
 
+class AbstractRankedStrategy(AbstractStrategy):
+    @abstractmethod
+    def rank_numbers(self) -> list[int]:
+        raise NotImplementedError
+
+    def generate_numbers(self) -> list[int]:
+        return sorted(self.rank_numbers()[: self.TAKE])
+
+
 class UnknownStrategyError(ValueError):
     pass
 
