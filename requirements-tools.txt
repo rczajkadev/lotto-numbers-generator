@@ -1,2 +1,2 @@
-openapi-python-client==0.29.0
-ruff==0.16.4
+openapi-python-client==0.29.1
+ruff==0.16.6
